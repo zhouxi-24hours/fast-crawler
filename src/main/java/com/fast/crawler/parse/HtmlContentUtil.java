@@ -1,7 +1,6 @@
 package com.fast.crawler.parse;
 
 import com.fast.crawler.proxyIp.entity.ProxyHost;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
