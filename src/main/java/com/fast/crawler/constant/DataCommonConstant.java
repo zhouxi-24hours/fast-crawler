@@ -16,7 +16,7 @@ public class DataCommonConstant {
     /**
      * 西刺IP网站地址
      */
-    public static final String IP_COMM_URL = "http://www.xicidaili.com/nn";
+    public static final String IP_COMM_URL = "http://www.xicidaili.com/nn/";
 
     /**
      * 计数 - 西刺网站中第几页

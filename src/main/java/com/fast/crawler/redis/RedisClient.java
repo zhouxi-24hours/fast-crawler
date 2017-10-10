@@ -1,5 +1,6 @@
 package com.fast.crawler.redis;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundValueOperations;
@@ -96,5 +97,16 @@ public class RedisClient<K, V> {
     public long getListSize(K key) {
         ListOperations<K, V> boundlistOper = redisTemplate.opsForList();
         return boundlistOper.size(key);
+    }
+
+    /**
+     * 存入List数据, 参数中包含List对象
+     * @param key
+     * @param list
+     */
+    public void putListData(K key, List<V> list) {
+        for (V v: list) {
+            putListData(key, v);
+        }
     }
 }

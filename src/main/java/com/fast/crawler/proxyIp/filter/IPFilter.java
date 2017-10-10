@@ -1,13 +1,17 @@
 package com.fast.crawler.proxyIp.filter;
 
+import com.fast.crawler.proxyIp.entity.ProxyHost;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Package com.fast.crawler.proxyIp.filter
@@ -47,5 +51,38 @@ public class IPFilter {
             }
         }
         return true;
+    }
+
+    /**
+     * @Description: 过滤方法;筛选出有用的ip
+     * @param proxyHostList
+     * @return
+     */
+    public static List<ProxyHost> doIPoolFilter(List<ProxyHost> proxyHostList) {
+
+        // 在并发中使用CopyOnWriteArrayList代替List
+        CopyOnWriteArrayList<ProxyHost> newIPoolList = new CopyOnWriteArrayList<ProxyHost>();
+        for (ProxyHost proxyHost: proxyHostList) {
+            ipoolFilter.execute(new Runnable() {
+                @Override
+                public void run() {
+                    double speed = Double.parseDouble(proxyHost.getSpeed());
+                    if(speed <= 2.0 && "HTTPS".equals(proxyHost.getType()) && isHostConnectable(proxyHost.getIp(), proxyHost.getPort())) {
+                        newIPoolList.add(proxyHost);
+                    }
+                }
+            });
+        }
+        ipoolFilter.shutdown();
+        try {
+            boolean loop = true;
+            do {    //等待所有任务完成
+                loop = !ipoolFilter.awaitTermination(2, TimeUnit.SECONDS);
+            } while(loop);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        LOGGER.info("当前爬取中可用IP集合[{}]",newIPoolList);
+        return newIPoolList;
     }
 }
