@@ -35,5 +35,6 @@ public class CrawlerIPoolJob implements Job {
         String url = DataCommonConstant.IP_COMM_URL + DataCommonConstant.COUNT;
         List<ProxyHost> list = IPFilter.doIPoolFilter(CrawlerIpWebsite.crawlerXiCiWebsite(url));  // 获取到有效的ip
         redisClient.putListData(DataCommonConstant.REDIS_IP_PARAM, list);
+        DataCommonConstant.COUNT++;  // 自增
     }
 }
