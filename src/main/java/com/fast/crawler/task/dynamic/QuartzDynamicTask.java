@@ -2,6 +2,7 @@ package com.fast.crawler.task.dynamic;
 
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 
@@ -11,17 +12,18 @@ import java.util.Date;
  * @Author zhouxi
  * @Date 2017/10/10 15:20
  */
+@Component
 public class QuartzDynamicTask {
 
-    private static SchedulerFactory schedulerFactory = new StdSchedulerFactory();
+    private SchedulerFactory schedulerFactory = new StdSchedulerFactory();
 
     private static final String DEFAULT_JOB_GROUP_NAME = "defaultJobGroupName";
     private static final String DEAFULT_TRRIGGER_NAME = "defaultTriggerName";
     private static final String DEFAULT_TRIGGER_GROUP_NAME = "defaultTriggerGroupName";
     private static final String DEFAULT_CRON = "0 0/30 * * * ?";  // 默认30分钟执行一次
-    private static final long DEFAULT_FUTHER_TIME = 5 * 1000;     // 默认5分钟之后执行
+    private static final long DEFAULT_FUTHER_TIME = 5 * 1000;     // 默认5秒之后执行
 
-    public static void addJob(String jobName, Class jobClass) {
+    public void addJob(String jobName, Class jobClass) {
         addJob(jobName,DEFAULT_JOB_GROUP_NAME,DEAFULT_TRRIGGER_NAME,DEFAULT_TRIGGER_GROUP_NAME,jobClass,DEFAULT_FUTHER_TIME,DEFAULT_CRON);
     }
 
@@ -34,29 +36,27 @@ public class QuartzDynamicTask {
      * @param jobClass 任务
      * @param cron 时间设置
      */
-    public static void addJob(String jobName, String jobGroupName, String triggerName, String triggerGroupName, Class jobClass, long futherTime, String cron) {
-        try {
-            Scheduler sched = schedulerFactory.getScheduler();
-            JobDetail jobDetail= JobBuilder.newJob(jobClass).withIdentity(jobName, jobGroupName).build(); // 任务名,任务组,任务执行类
-            TriggerBuilder<Trigger> triggerBuilder = TriggerBuilder.newTrigger();  // 触发器
-            triggerBuilder.withIdentity(triggerName, triggerGroupName);  // 触发器名,触发器组
+    public void addJob(String jobName, String jobGroupName, String triggerName, String triggerGroupName, Class jobClass, long futherTime, String cron) {
+        try{
+            // 代表一个Quartz的独立运行容器
+            Scheduler scheduler = schedulerFactory.getScheduler();
+            // 将返回某一时间点一分钟以后的时间
+            //Date runtime = DateBuilder.evenMinuteDate(new Date());
             long furtherTimes = System.currentTimeMillis() + futherTime;
             Date date = new Date(furtherTimes);
-            triggerBuilder.startAt(date);  // 5秒之后执行
-            triggerBuilder.withSchedule(CronScheduleBuilder.cronSchedule(cron)); // 触发器时间设定
-            CronTrigger trigger = (CronTrigger) triggerBuilder.build();  // 创建Trigger对象
-            // 调度容器设置JobDetail和Trigger
-            sched.scheduleJob(jobDetail, trigger);
-            // 启动
-            if (!sched.isShutdown()) {
-                sched.start();
-            }
+            // 创建一个JobDetail实例,此版本JobDetail已经作为接口（interface）存在，通过JobBuilder创建
+            JobDetail jobDetail = JobBuilder.newJob(jobClass).withIdentity(jobName, jobGroupName).build();
+            // 定义调度规则接口
+            Trigger trigger = TriggerBuilder.newTrigger().withIdentity(triggerName, triggerGroupName).startAt(date).build();
+            // 添加JobDetail到Scheduler容器中，并且和Trigger进行关联
+            scheduler.scheduleJob(jobDetail, trigger);
+            scheduler.start();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void removeJob(String jobName) {
+    public void removeJob(String jobName) {
         removeJob(jobName, DEFAULT_JOB_GROUP_NAME, DEAFULT_TRRIGGER_NAME, DEFAULT_TRIGGER_GROUP_NAME);
     }
 
@@ -67,7 +67,7 @@ public class QuartzDynamicTask {
      * @param triggerName
      * @param triggerGroupName
      */
-    public static void removeJob(String jobName, String jobGroupName, String triggerName, String triggerGroupName) {
+    public void removeJob(String jobName, String jobGroupName, String triggerName, String triggerGroupName) {
         try {
             Scheduler sched = schedulerFactory.getScheduler();
             TriggerKey triggerKey = TriggerKey.triggerKey(triggerName, triggerGroupName);

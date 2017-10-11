@@ -22,4 +22,9 @@ public class DataCommonConstant {
      * 计数 - 西刺网站中第几页
      */
     public static int COUNT = 1;
+
+    /**
+     * 定时任务名称
+     */
+    public static final String XICI_TASK_NAME = "crawlerXiciIp";
 }

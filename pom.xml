@@ -131,6 +131,13 @@
             <version>2.3.0</version>
         </dependency>
 
+        <!-- 该依赖必加,里面有spring对schedule的支持 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
+            <version>4.3.11.RELEASE</version>
+        </dependency>
+
     </dependencies>
 
 	<build>

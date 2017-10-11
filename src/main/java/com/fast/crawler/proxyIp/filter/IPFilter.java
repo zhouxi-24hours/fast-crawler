@@ -41,7 +41,6 @@ public class IPFilter {
         try {
             socket.connect(new InetSocketAddress(ip, port));
         } catch (IOException e) {
-            LOGGER.info("ip[{}],port[{}]无法连通" ,ip, port);
             return false;
         } finally {
             try {
@@ -59,14 +58,13 @@ public class IPFilter {
      * @return
      */
     public static List<ProxyHost> doIPoolFilter(List<ProxyHost> proxyHostList) {
-
         // 在并发中使用CopyOnWriteArrayList代替List
         CopyOnWriteArrayList<ProxyHost> newIPoolList = new CopyOnWriteArrayList<ProxyHost>();
         for (ProxyHost proxyHost: proxyHostList) {
             ipoolFilter.execute(new Runnable() {
                 @Override
                 public void run() {
-                    double speed = Double.parseDouble(proxyHost.getSpeed());
+                    double speed = Double.parseDouble(proxyHost.getSpeed().replace("秒", ""));
                     if(speed <= 2.0 && "HTTPS".equals(proxyHost.getType()) && isHostConnectable(proxyHost.getIp(), proxyHost.getPort())) {
                         newIPoolList.add(proxyHost);
                     }
@@ -82,7 +80,7 @@ public class IPFilter {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        LOGGER.info("当前爬取中可用IP集合[{}]",newIPoolList);
+        LOGGER.info("当前爬取中可用IP集合[{}]", newIPoolList);
         return newIPoolList;
     }
 }
